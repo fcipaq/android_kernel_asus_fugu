@@ -270,9 +270,9 @@ bool is_permitted(const u8 *uuid, int cmd_id)
 		if (element->cmd_id == cmd_id) {
 			rule_exists = true;
 			/* if we have a rule for this command check the perms */
-			if (uid_eq(current_euid(), element->uid) ||
-			    gid_eq(current_egid(), element->gid) ||
-			    groups_search(groups_info, element->gid))
+			if (uid_eq(current_euid(), make_kuid(current_user_ns() , element->uid)) ||
+			    gid_eq(current_egid(), make_kgid(current_user_ns() , element->gid)) ||
+			    groups_search(groups_info, make_kgid(current_user_ns() , element->gid)))
 				return true;
 		}
 	}
@@ -402,9 +402,6 @@ static ssize_t sep_write_load(struct file *file, const char __user *buf,
 	*/
 
 	if (*ppos != 0)
-		return -EINVAL;
-
-	if (count == SIZE_MAX)
 		return -EINVAL;
 
 	/* allow for \0 to stringify the data */
