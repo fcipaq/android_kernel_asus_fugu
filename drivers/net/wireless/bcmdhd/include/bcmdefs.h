@@ -1,27 +1,12 @@
 /*
  * Misc system wide definitions
  *
- * Copyright (C) 1999-2014, Broadcom Corporation
- * 
- *      Unless you and Broadcom execute a separate written software license
- * agreement governing use of this software, this software is licensed to you
- * under the terms of the GNU General Public License version 2 (the "GPL"),
- * available at http://www.broadcom.com/licenses/GPLv2.php, with the
- * following added to such license:
- * 
- *      As a special exception, the copyright holders of this software give you
- * permission to link this software with independent modules, and to copy and
- * distribute the resulting executable under terms of your choice, provided that
- * you also meet, for each linked independent module, the terms and conditions of
- * the license of that module.  An independent module is a module which is not
- * derived from this software.  The special exception does not apply to any
- * modifications of the software.
- * 
- *      Notwithstanding the above, under no circumstances may you combine this
- * software in any way with any other Broadcom software provided under a license
- * other than the GPL, without Broadcom's express prior written consent.
+ * $ Copyright Open Broadcom Corporation $
  *
- * $Id: bcmdefs.h 474209 2014-04-30 12:16:47Z $
+ *
+ * <<Broadcom-WL-IPTag/Open:>>
+ *
+ * $Id: bcmdefs.h 553280 2015-04-29 07:55:29Z $
  */
 
 #ifndef	_bcmdefs_h_
@@ -142,6 +127,12 @@
 #define CHIPREV(rev)	(rev)
 #endif
 
+#ifdef BCMPCIEREV
+#define PCIECOREREV(rev)	(BCMPCIEREV)
+#else
+#define PCIECOREREV(rev)	(rev)
+#endif
+
 /* Defines for DMA Address Width - Shared between OSL and HNDDMA */
 #define DMADDR_MASK_32 0x0		/* Address mask for 32-bits */
 #define DMADDR_MASK_30 0xc0000000	/* Address mask for 30-bits */
@@ -217,7 +208,11 @@ typedef struct {
 #define BCMEXTRAHDROOM 260
 #else /* BCM_RPC_NOCOPY || BCM_RPC_TXNOCOPY */
 #if defined(BCM47XX_CA9)
+#if defined(BCM_GMAC3)
+#define BCMEXTRAHDROOM 32 /* For FullDongle, no D11 headroom space required. */
+#else
 #define BCMEXTRAHDROOM 224
+#endif /* ! BCM_GMAC3 */
 #else
 #define BCMEXTRAHDROOM 204
 #endif /* linux && BCM47XX_CA9 */
@@ -279,8 +274,13 @@ typedef struct {
 
 /* Max. nvram variable table size */
 #ifndef MAXSZ_NVRAM_VARS
-#define	MAXSZ_NVRAM_VARS	4096
-#endif
+#ifdef LARGE_NVRAM_MAXSZ
+#define MAXSZ_NVRAM_VARS	LARGE_NVRAM_MAXSZ
+#else
+/* SROM12 changes */
+#define	MAXSZ_NVRAM_VARS	6144
+#endif /* LARGE_NVRAM_MAXSZ */
+#endif /* !MAXSZ_NVRAM_VARS */
 
 
 
@@ -301,18 +301,52 @@ typedef struct {
 #else
 	#define BCMLFRAG_ENAB()		(0)
 #endif /* BCMLFRAG_ENAB */
+#define	RXMODE1	1	/* descriptor split */
+#define	RXMODE2	2	/* descriptor split + classification */
+#define	RXMODE3	3	/* fifo split + classification */
+#define	RXMODE4	4	/* fifo split + classification + hdr conversion */
+
 #ifdef BCMSPLITRX /* BCMLFRAG support enab macros  */
 	extern bool _bcmsplitrx;
+	extern uint8 _bcmsplitrx_mode;
 	#if defined(WL_ENAB_RUNTIME_CHECK) || !defined(DONGLEBUILD)
 		#define BCMSPLITRX_ENAB() (_bcmsplitrx)
+		#define BCMSPLITRX_MODE() (_bcmsplitrx_mode)
 	#elif defined(BCMSPLITRX_DISABLED)
 		#define BCMSPLITRX_ENAB()	(0)
+		#define BCMSPLITRX_MODE()	(0)
 	#else
 		#define BCMSPLITRX_ENAB()	(1)
+		#define BCMSPLITRX_MODE() (_bcmsplitrx_mode)
 	#endif
 #else
 	#define BCMSPLITRX_ENAB()		(0)
+	#define BCMSPLITRX_MODE()		(0)
 #endif /* BCMSPLITRX */
+
+#ifdef BCMPCIEDEV /* BCMPCIEDEV support enab macros */
+extern bool _pciedevenab;
+	#if defined(WL_ENAB_RUNTIME_CHECK)
+		#define BCMPCIEDEV_ENAB() (_pciedevenab)
+	#elif defined(BCMPCIEDEV_ENABLED)
+		#define BCMPCIEDEV_ENAB()	1
+	#else
+		#define BCMPCIEDEV_ENAB()	0
+	#endif
+#else
+	#define BCMPCIEDEV_ENAB()	0
+#endif /* BCMPCIEDEV */
+
+#define SPLIT_RXMODE1()	((BCMSPLITRX_MODE() == RXMODE1))
+#define SPLIT_RXMODE2()	((BCMSPLITRX_MODE() == RXMODE2))
+#define SPLIT_RXMODE3()	((BCMSPLITRX_MODE() == RXMODE3))
+#define SPLIT_RXMODE4()	((BCMSPLITRX_MODE() == RXMODE4))
+
+#define PKT_CLASSIFY()	(SPLIT_RXMODE2() || SPLIT_RXMODE3() || SPLIT_RXMODE4())
+#define RXFIFO_SPLIT()	(SPLIT_RXMODE3() || SPLIT_RXMODE4())
+#define HDR_CONV()	(SPLIT_RXMODE4())
+
+#define PKT_CLASSIFY_EN(x)	((PKT_CLASSIFY()) && (PKT_CLASSIFY_FIFO == (x)))
 #ifdef BCM_SPLITBUF
 	extern bool _bcmsplitbuf;
 	#if defined(WL_ENAB_RUNTIME_CHECK) || !defined(DONGLEBUILD)
@@ -325,6 +359,7 @@ typedef struct {
 #else
 	#define BCM_SPLITBUF_ENAB()		(0)
 #endif	/* BCM_SPLITBUF */
+
 /* Max size for reclaimable NVRAM array */
 #ifdef DL_NVRAM
 #define NVRAM_ARRAY_MAXSIZE	DL_NVRAM

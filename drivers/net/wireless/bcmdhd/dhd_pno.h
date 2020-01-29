@@ -1,25 +1,11 @@
 /*
  * Header file of Broadcom Dongle Host Driver (DHD)
  * Prefered Network Offload code and Wi-Fi Location Service(WLS) code.
- * Copyright (C) 1999-2014, Broadcom Corporation
  *
- *      Unless you and Broadcom execute a separate written software license
- * agreement governing use of this software, this software is licensed to you
- * under the terms of the GNU General Public License version 2 (the "GPL"),
- * available at http://www.broadcom.com/licenses/GPLv2.php, with the
- * following added to such license:
+ * $ Copyright Open Broadcom Corporation $
  *
- *      As a special exception, the copyright holders of this software give you
- * permission to link this software with independent modules, and to copy and
- * distribute the resulting executable under terms of your choice, provided that
- * you also meet, for each linked independent module, the terms and conditions of
- * the license of that module.  An independent module is a module which is not
- * derived from this software.  The special exception does not apply to any
- * modifications of the software.
  *
- *      Notwithstanding the above, under no circumstances may you combine this
- * software in any way with any other Broadcom software provided under a license
- * other than the GPL, without Broadcom's express prior written consent.
+ * <<Broadcom-WL-IPTag/Open:>>
  *
  * $Id: dhd_pno.h 423669 2013-09-18 13:01:55Z $
  */
@@ -32,11 +18,9 @@
 #define PNO_TLV_VERSION			'1'
 #define PNO_TLV_SUBTYPE_LEGACY_PNO '2'
 #define PNO_TLV_RESERVED		'0'
-
 #define PNO_BATCHING_SET "SET"
 #define PNO_BATCHING_GET "GET"
 #define PNO_BATCHING_STOP "STOP"
-
 #define PNO_PARAMS_DELIMETER " "
 #define PNO_PARAM_CHANNEL_DELIMETER ","
 #define PNO_PARAM_VALUE_DELLIMETER '='
@@ -83,7 +67,6 @@
 #define GSCAN_LOST_AP_WINDOW_DEFAULT        4
 #define GSCAN_MIN_BSSID_TIMEOUT             90
 #define GSCAN_BATCH_GET_MAX_WAIT            500
-
 #define CHANNEL_BUCKET_EMPTY_INDEX                      0xFFFF
 #define GSCAN_RETRY_THRESHOLD              3
 #endif /* GSCAN_SUPPORT */
@@ -272,23 +255,23 @@ typedef struct dhd_pno_gscan_channel_bucket {
 	uint16 chan_list[GSCAN_MAX_CH_BUCKETS];
 } dhd_pno_gscan_channel_bucket_t;
 
-struct dhd_pno_swc_evt_param {
+typedef struct dhd_pno_swc_evt_param {
 	uint16 results_rxed_so_far;
 	wl_pfn_significant_net_t *change_array;
-};
+} dhd_pno_swc_evt_param_t;
 
 typedef struct wifi_gscan_result {
-    uint64 ts;                           /* Time of discovery           */
-    char ssid[DOT11_MAX_SSID_LEN+1];     /* null terminated             */
-    struct ether_addr	macaddr;         /* BSSID                      */
-    uint32 channel;                      /* channel frequency in MHz    */
-    int32 rssi;                          /* in db                       */
-    uint64 rtt;                          /* in nanoseconds              */
-    uint64 rtt_sd;                       /* standard deviation in rtt   */
-    uint16 beacon_period;                /* units are Kusec             */
-    uint16 capability;		            /* Capability information       */
-    uint32 ie_length;		            /* byte length of Information Elements */
-    char  ie_data[1];					/* IE data to follow       */
+	uint64 ts;                           /* Time of discovery           */
+	char ssid[DOT11_MAX_SSID_LEN+1];     /* null terminated             */
+	struct ether_addr	macaddr;         /* BSSID                      */
+	uint32 channel;                      /* channel frequency in MHz    */
+	int32 rssi;                          /* in db                       */
+	uint64 rtt;                          /* in nanoseconds              */
+	uint64 rtt_sd;                       /* standard deviation in rtt   */
+	uint16 beacon_period;                /* units are Kusec             */
+	uint16 capability;                   /* Capability information       */
+	uint32 ie_length;                    /* byte length of Information Elements */
+	char  ie_data[1];                    /* IE data to follow       */
 } wifi_gscan_result_t;
 
 typedef struct gscan_results_cache {
@@ -301,13 +284,13 @@ typedef struct gscan_results_cache {
 } gscan_results_cache_t;
 
 typedef struct dhd_pno_gscan_capabilities {
-    int max_scan_cache_size;
-    int max_scan_buckets;
-    int max_ap_cache_per_scan;
-    int max_rssi_sample_size;
-    int max_scan_reporting_threshold;
-    int max_hotlist_aps;
-    int max_significant_wifi_change_aps;
+	int max_scan_cache_size;
+	int max_scan_buckets;
+	int max_ap_cache_per_scan;
+	int max_rssi_sample_size;
+	int max_scan_reporting_threshold;
+	int max_hotlist_aps;
+	int max_significant_wifi_change_aps;
 } dhd_pno_gscan_capabilities_t;
 
 struct dhd_pno_gscan_params {
@@ -442,9 +425,9 @@ extern void * dhd_dev_swc_scan_event(struct net_device *dev, const void  *data,
               int *send_evt_bytes);
 int dhd_retreive_batch_scan_results(dhd_pub_t *dhd);
 extern void * dhd_dev_hotlist_scan_event(struct net_device *dev,
-                         const void  *data, int *send_evt_bytes, hotlist_type_t type);
+            const void  *data, int *send_evt_bytes, hotlist_type_t type);
 void * dhd_dev_process_full_gscan_result(struct net_device *dev,
-                                        const void  *data, int *send_evt_bytes);
+            const void  *data, int *send_evt_bytes);
 extern int dhd_dev_gscan_batch_cache_cleanup(struct net_device *dev);
 extern void dhd_dev_gscan_hotlist_cache_cleanup(struct net_device *dev, hotlist_type_t type);
 extern void dhd_dev_wait_batch_results_complete(struct net_device *dev);
@@ -492,6 +475,18 @@ extern int dhd_gscan_batch_cache_cleanup(dhd_pub_t *dhd);
 extern void dhd_gscan_hotlist_cache_cleanup(dhd_pub_t *dhd, hotlist_type_t type);
 extern void dhd_wait_batch_results_complete(dhd_pub_t *dhd);
 #endif /* GSCAN_SUPPORT */
-#endif
+#endif 
 
+#if defined(NDISVER)
+#if defined(PNO_SUPPORT)
+#if (NDISVER >= 0x0630)
+extern int dhd_pno_cfg(dhd_pub_t *dhd, wl_pfn_cfg_t *pcfg);
+extern int dhd_pno_suspend(dhd_pub_t *dhd, int pfn_suspend);
+extern int dhd_pno_set_add(dhd_pub_t *dhd, wl_pfn_t *netinfo, int nssid, ushort scan_fr,
+	ushort slowscan_fr, uint8 pno_repeat, uint8 pno_freq_expo_max, int16 flags);
+extern int dhd_pno_enable(dhd_pub_t *dhd, int pfn_enabled);
+extern int dhd_pno_clean(dhd_pub_t *dhd);
+#endif /* #if (NDISVER >= 0x0630) */
+#endif /* #if defined(PNO_SUPPORT) */
+#endif /* #if defined(NDISVER) */
 #endif /* __DHD_PNO_H__ */

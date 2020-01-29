@@ -1,33 +1,14 @@
 /*
  * Linux cfg80211 Vendor Extension Code
  *
- * Copyright (C) 1999-2014, Broadcom Corporation
+ * $ Copyright Open Broadcom Corporation $
  *
- *      Unless you and Broadcom execute a separate written software license
- * agreement governing use of this software, this software is licensed to you
- * under the terms of the GNU General Public License version 2 (the "GPL"),
- * available at http://www.broadcom.com/licenses/GPLv2.php, with the
- * following added to such license:
  *
- *      As a special exception, the copyright holders of this software give you
- * permission to link this software with independent modules, and to copy and
- * distribute the resulting executable under terms of your choice, provided that
- * you also meet, for each linked independent module, the terms and conditions of
- * the license of that module.  An independent module is a module which is not
- * derived from this software.  The special exception does not apply to any
- * modifications of the software.
+ * <<Broadcom-WL-IPTag/Open:>>
  *
- *      Notwithstanding the above, under no circumstances may you combine this
- * software in any way with any other Broadcom software provided under a license
- * other than the GPL, without Broadcom's express prior written consent.
- *
- * $Id: wl_cfgvendor.h 473890 2014-04-30 01:55:06Z $
+ * $Id: wl_cfgvendor.h 455257 2014-02-20 08:10:24Z $
  */
 
-/*
- * New vendor interface additon to nl80211/cfg80211 to allow vendors
- * to implement proprietary features over the cfg80211 stack.
- */
 
 #ifndef _wl_cfgvendor_h_
 #define _wl_cfgvendor_h_
@@ -54,6 +35,14 @@
 #define VENDOR_REPLY_OVERHEAD       (VENDOR_ID_OVERHEAD + \
 									VENDOR_SUBCMD_OVERHEAD + \
 									VENDOR_DATA_OVERHEAD)
+
+#define GSCAN_ATTR_SET1				10
+#define GSCAN_ATTR_SET2				20
+#define GSCAN_ATTR_SET3				30
+#define GSCAN_ATTR_SET4				40
+#define GSCAN_ATTR_SET5				50
+#define GSCAN_ATTR_SET6				60
+
 typedef enum {
 	/* don't use 0 as a valid subcommand */
 	VENDOR_NL80211_SUBCMD_UNSPECIFIED,
@@ -83,9 +72,7 @@ typedef enum {
 
 } ANDROID_VENDOR_SUB_COMMAND;
 
-enum wl_vendor_subcmd {
-	BRCM_VENDOR_SCMD_UNSPEC,
-	BRCM_VENDOR_SCMD_PRIV_STR,
+enum andr_vendor_subcmd {
 	GSCAN_SUBCMD_GET_CAPABILITIES = ANDROID_NL80211_SUBCMD_GSCAN_RANGE_START,
 	GSCAN_SUBCMD_SET_CONFIG,
 	GSCAN_SUBCMD_SET_SCAN_CONFIG,
@@ -96,6 +83,7 @@ enum wl_vendor_subcmd {
 	GSCAN_SUBCMD_SET_SIGNIFICANT_CHANGE_CONFIG,
 	GSCAN_SUBCMD_ENABLE_FULL_SCAN_RESULTS,
 	GSCAN_SUBCMD_GET_CHANNEL_LIST,
+	/* ANDR_WIFI_XXX although not related to gscan are defined here */
 	ANDR_WIFI_SUBCMD_GET_FEATURE_SET,
 	ANDR_WIFI_SUBCMD_GET_FEATURE_SET_MATRIX,
 	ANDR_WIFI_PNO_RANDOM_MAC_OUI,
@@ -106,11 +94,11 @@ enum wl_vendor_subcmd {
 
 	LSTATS_SUBCMD_GET_INFO = ANDROID_NL80211_SUBCMD_LSTATS_RANGE_START,
     /* Add more sub commands here */
-    VENDOR_SUBCMD_MAX
+	VENDOR_SUBCMD_MAX
 };
 
 enum gscan_attributes {
-    GSCAN_ATTRIBUTE_NUM_BUCKETS = 10,
+    GSCAN_ATTRIBUTE_NUM_BUCKETS = GSCAN_ATTR_SET1,
     GSCAN_ATTRIBUTE_BASE_PERIOD,
     GSCAN_ATTRIBUTE_BUCKETS_BAND,
     GSCAN_ATTRIBUTE_BUCKET_ID,
@@ -122,13 +110,13 @@ enum gscan_attributes {
     GSCAN_ATTRIBUTE_NUM_SCANS_TO_CACHE,
     GSCAN_ATTRIBUTE_BAND = GSCAN_ATTRIBUTE_BUCKETS_BAND,
 
-    GSCAN_ATTRIBUTE_ENABLE_FEATURE = 20,
+    GSCAN_ATTRIBUTE_ENABLE_FEATURE = GSCAN_ATTR_SET2,
     GSCAN_ATTRIBUTE_SCAN_RESULTS_COMPLETE,
     GSCAN_ATTRIBUTE_FLUSH_FEATURE,
     GSCAN_ATTRIBUTE_ENABLE_FULL_SCAN_RESULTS,
     GSCAN_ATTRIBUTE_REPORT_EVENTS,
     /* remaining reserved for additional attributes */
-    GSCAN_ATTRIBUTE_NUM_OF_RESULTS = 30,
+    GSCAN_ATTRIBUTE_NUM_OF_RESULTS = GSCAN_ATTR_SET3,
     GSCAN_ATTRIBUTE_FLUSH_RESULTS,
     GSCAN_ATTRIBUTE_SCAN_RESULTS,                       /* flat array of wifi_scan_result */
     GSCAN_ATTRIBUTE_SCAN_ID,                            /* indicates scan number */
@@ -139,7 +127,7 @@ enum gscan_attributes {
 
 	/* remaining reserved for additional attributes */
 
-    GSCAN_ATTRIBUTE_SSID = 40,
+    GSCAN_ATTRIBUTE_SSID = GSCAN_ATTR_SET4,
     GSCAN_ATTRIBUTE_BSSID,
     GSCAN_ATTRIBUTE_CHANNEL,
     GSCAN_ATTRIBUTE_RSSI,
@@ -149,14 +137,14 @@ enum gscan_attributes {
 
     /* remaining reserved for additional attributes */
 
-    GSCAN_ATTRIBUTE_HOTLIST_BSSIDS = 50,
+    GSCAN_ATTRIBUTE_HOTLIST_BSSIDS = GSCAN_ATTR_SET5,
     GSCAN_ATTRIBUTE_RSSI_LOW,
     GSCAN_ATTRIBUTE_RSSI_HIGH,
     GSCAN_ATTRIBUTE_HOSTLIST_BSSID_ELEM,
     GSCAN_ATTRIBUTE_HOTLIST_FLUSH,
 
     /* remaining reserved for additional attributes */
-    GSCAN_ATTRIBUTE_RSSI_SAMPLE_SIZE = 60,
+    GSCAN_ATTRIBUTE_RSSI_SAMPLE_SIZE = GSCAN_ATTR_SET6,
     GSCAN_ATTRIBUTE_LOST_AP_SAMPLE_SIZE,
     GSCAN_ATTRIBUTE_MIN_BREACHING,
     GSCAN_ATTRIBUTE_SIGNIFICANT_CHANGE_BSSIDS,
@@ -211,10 +199,10 @@ typedef enum wl_vendor_event {
 } wl_vendor_event_t;
 
 enum andr_wifi_attr {
-    ANDR_WIFI_ATTRIBUTE_NUM_FEATURE_SET,
-    ANDR_WIFI_ATTRIBUTE_FEATURE_SET,
-    ANDR_WIFI_ATTRIBUTE_PNO_RANDOM_MAC_OUI,
-    ANDR_WIFI_ATTRIBUTE_NODFS_SET,
+	ANDR_WIFI_ATTRIBUTE_NUM_FEATURE_SET,
+	ANDR_WIFI_ATTRIBUTE_FEATURE_SET,
+	ANDR_WIFI_ATTRIBUTE_PNO_RANDOM_MAC_OUI,
+	ANDR_WIFI_ATTRIBUTE_NODFS_SET
 };
 
 typedef enum wl_vendor_gscan_attribute {
@@ -226,7 +214,7 @@ typedef enum wl_vendor_gscan_attribute {
 	ATTR_SET_SCAN_CFG_ID, /* set common scan config params here */
 	ATTR_GET_GSCAN_CAPABILITIES_ID,
     /* Add more sub commands here */
-    ATTR_GSCAN_MAX
+	ATTR_GSCAN_MAX
 } wl_vendor_gscan_attribute_t;
 
 typedef enum gscan_batch_attribute {
@@ -248,13 +236,16 @@ typedef enum gscan_complete_event {
 /* Capture the BRCM_VENDOR_SUBCMD_PRIV_STRINGS* here */
 #define BRCM_VENDOR_SCMD_CAPA	"cap"
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 13, 0)) || defined(WL_VENDOR_EXT_SUPPORT)
+#if defined(WL_VENDOR_EXT_SUPPORT) || defined(CONFIG_BCMDHD_VENDOR_EXT)
 extern int wl_cfgvendor_attach(struct wiphy *wiphy);
 extern int wl_cfgvendor_detach(struct wiphy *wiphy);
 extern int wl_cfgvendor_send_async_event(struct wiphy *wiphy,
                   struct net_device *dev, int event_id, const void  *data, int len);
 extern int wl_cfgvendor_send_hotlist_event(struct wiphy *wiphy,
                 struct net_device *dev, void  *data, int len, wl_vendor_event_t event);
-#endif /* (LINUX_VERSION_CODE > KERNEL_VERSION(3, 13, 0)) || defined(WL_VENDOR_EXT_SUPPORT) */
+#else
+static INLINE int cfgvendor_attach(struct wiphy *wiphy) { return 0; }
+static INLINE int cfgvendor_detach(struct wiphy *wiphy) { return 0; }
+#endif /* defined(WL_VENDOR_EXT_SUPPORT) */
 
 #endif /* _wl_cfgvendor_h_ */

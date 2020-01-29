@@ -1,27 +1,12 @@
 /*
  * SDIO access interface for drivers - linux specific (pci only)
  *
- * Copyright (C) 1999-2014, Broadcom Corporation
- * 
- *      Unless you and Broadcom execute a separate written software license
- * agreement governing use of this software, this software is licensed to you
- * under the terms of the GNU General Public License version 2 (the "GPL"),
- * available at http://www.broadcom.com/licenses/GPLv2.php, with the
- * following added to such license:
- * 
- *      As a special exception, the copyright holders of this software give you
- * permission to link this software with independent modules, and to copy and
- * distribute the resulting executable under terms of your choice, provided that
- * you also meet, for each linked independent module, the terms and conditions of
- * the license of that module.  An independent module is a module which is not
- * derived from this software.  The special exception does not apply to any
- * modifications of the software.
- * 
- *      Notwithstanding the above, under no circumstances may you combine this
- * software in any way with any other Broadcom software provided under a license
- * other than the GPL, without Broadcom's express prior written consent.
+ * $ Copyright Open Broadcom Corporation $
  *
- * $Id: bcmsdh_linux.c 461444 2014-03-12 02:55:28Z $
+ *
+ * <<Broadcom-WL-IPTag/Open:>>
+ *
+ * $Id: bcmsdh_linux.c 514727 2014-11-12 03:02:48Z $
  */
 
 /**
@@ -34,9 +19,6 @@
 #include <linuxver.h>
 #include <linux/pci.h>
 #include <linux/completion.h>
-#ifdef DHD_WAKE_STATUS
-#include <linux/wakeup_reason.h>
-#endif
 
 #include <osl.h>
 #include <pcicfg.h>
@@ -186,11 +168,6 @@ void* bcmsdh_probe(osl_t *osh, void *dev, void *sdioh, void *adapter_info, uint 
 		goto err;
 	}
 
-#ifdef DHD_WAKE_STATUS
-	bcmsdh->wake_irq = wifi_platform_get_wake_irq(adapter_info);
-	if (bcmsdh->wake_irq == -1)
-		bcmsdh->wake_irq = bcmsdh_osinfo->oob_irq_num;
-#endif
 	return bcmsdh;
 
 	/* error handling */
@@ -219,29 +196,6 @@ int bcmsdh_remove(bcmsdh_info_t *bcmsdh)
 	return 0;
 }
 
-#ifdef DHD_WAKE_STATUS
-int bcmsdh_get_total_wake(bcmsdh_info_t *bcmsdh)
-{
-	return bcmsdh->total_wake_count;
-}
-
-int bcmsdh_set_get_wake(bcmsdh_info_t *bcmsdh, int flag)
-{
-	bcmsdh_os_info_t *bcmsdh_osinfo = bcmsdh->os_cxt;
-	unsigned long flags;
-	int ret;
-
-	spin_lock_irqsave(&bcmsdh_osinfo->oob_irq_spinlock, flags);
-
-	ret = bcmsdh->pkt_wake;
-	bcmsdh->total_wake_count += flag;
-	bcmsdh->pkt_wake = flag;
-
-	spin_unlock_irqrestore(&bcmsdh_osinfo->oob_irq_spinlock, flags);
-	return ret;
-}
-#endif
-
 int bcmsdh_suspend(bcmsdh_info_t *bcmsdh)
 {
 	bcmsdh_os_info_t *bcmsdh_osinfo = bcmsdh->os_cxt;
@@ -254,11 +208,6 @@ int bcmsdh_suspend(bcmsdh_info_t *bcmsdh)
 int bcmsdh_resume(bcmsdh_info_t *bcmsdh)
 {
 	bcmsdh_os_info_t *bcmsdh_osinfo = bcmsdh->os_cxt;
-
-#ifdef DHD_WAKE_STATUS
-	if (check_wakeup_reason(bcmsdh->wake_irq))
-		bcmsdh_set_get_wake(bcmsdh, 1);
-#endif
 
 	if (drvinfo.resume)
 		return drvinfo.resume(bcmsdh_osinfo->context);
