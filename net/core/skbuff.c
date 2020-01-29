@@ -47,6 +47,8 @@
 #include <linux/in.h>
 #include <linux/inet.h>
 #include <linux/slab.h>
+#include <linux/tcp.h>
+#include <linux/udp.h>
 #include <linux/netdevice.h>
 #ifdef CONFIG_NET_CLS_ACT
 #include <net/pkt_sched.h>
@@ -1040,6 +1042,70 @@ out:
 	return n;
 }
 EXPORT_SYMBOL(__pskb_copy);
+
+/**
+ *	__pskb_copy_fclone	-  create copy of an sk_buff with private head.
+ *	@skb: buffer to copy
+ *	@headroom: headroom of new skb
+ *	@gfp_mask: allocation priority
+ *	@fclone: if true allocate the copy of the skb from the fclone
+ *	cache instead of the head cache; it is recommended to set this
+ *	to true for the cases where the copy will likely be cloned
+ *
+ *	Make a copy of both an &sk_buff and part of its data, located
+ *	in header. Fragmented data remain shared. This is used when
+ *	the caller wishes to modify only header of &sk_buff and needs
+ *	private copy of the header to alter. Returns %NULL on failure
+ *	or the pointer to the buffer on success.
+ *	The returned buffer has a reference count of 1.
+ */
+
+struct sk_buff *__pskb_copy_fclone(struct sk_buff *skb, int headroom,
+				   gfp_t gfp_mask, bool fclone)
+{
+	unsigned int size = skb_headlen(skb) + headroom;
+	int flags = skb_alloc_rx_flag(skb) | (fclone ? SKB_ALLOC_FCLONE : 0);
+	struct sk_buff *n = __alloc_skb(size, gfp_mask, flags, NUMA_NO_NODE);
+
+	if (!n)
+		goto out;
+
+	/* Set the data pointer */
+	skb_reserve(n, headroom);
+	/* Set the tail pointer and length */
+	skb_put(n, skb_headlen(skb));
+	/* Copy the bytes */
+	skb_copy_from_linear_data(skb, n->data, n->len);
+
+	n->truesize += skb->data_len;
+	n->data_len  = skb->data_len;
+	n->len	     = skb->len;
+
+	if (skb_shinfo(skb)->nr_frags) {
+		int i;
+
+		if (skb_orphan_frags(skb, gfp_mask)) {
+			kfree_skb(n);
+			n = NULL;
+			goto out;
+		}
+		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+			skb_shinfo(n)->frags[i] = skb_shinfo(skb)->frags[i];
+			skb_frag_ref(skb, i);
+		}
+		skb_shinfo(n)->nr_frags = i;
+	}
+
+	if (skb_has_frag_list(skb)) {
+		skb_shinfo(n)->frag_list = skb_shinfo(skb)->frag_list;
+		skb_clone_fraglist(n);
+	}
+
+	copy_skb_header(n, skb);
+out:
+	return n;
+}
+EXPORT_SYMBOL(__pskb_copy_fclone);
 
 /**
  *	pskb_expand_head - reallocate header of &sk_buff
@@ -3505,3 +3571,28 @@ bool skb_try_coalesce(struct sk_buff *to, struct sk_buff *from,
 	return true;
 }
 EXPORT_SYMBOL(skb_try_coalesce);
+
+/**
+ * skb_gso_transport_seglen - Return length of individual segments of a gso packet
+ *
+ * @skb: GSO skb
+ *
+ * skb_gso_transport_seglen is used to determine the real size of the
+ * individual segments, including Layer4 headers (TCP/UDP).
+ *
+ * The MAC/L2 or network (IP, IPv6) headers are not accounted for.
+ */
+unsigned int skb_gso_transport_seglen(const struct sk_buff *skb)
+{
+	const struct skb_shared_info *shinfo = skb_shinfo(skb);
+
+	if (likely(shinfo->gso_type & (SKB_GSO_TCPV4 | SKB_GSO_TCPV6)))
+		return tcp_hdrlen(skb) + shinfo->gso_size;
+
+	/* UFO sets gso_size to the size of the fragmentation
+	 * payload, i.e. the size of the L4 (UDP) header is already
+	 * accounted for.
+	 */
+	return shinfo->gso_size;
+}
+EXPORT_SYMBOL_GPL(skb_gso_transport_seglen);
