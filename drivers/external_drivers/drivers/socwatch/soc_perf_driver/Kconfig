@@ -1,0 +1,3 @@
+config INTEL_SOCWATCH_PERF_DRV
+	boolean "Intel SoCWatch Perf driver support"
+	depends on X86_INTEL_MID=y

@@ -1,0 +1,43 @@
+config MOOREFIELD
+	bool
+
+config VIDEO_MRFLD
+	bool
+
+config VIDEO_MRFLD_EC
+	bool
+
+config DRM_MRFLD
+	bool
+	select MOOREFIELD
+	select VIDEO_MRFLD
+	select VIDEO_MRFLD_EC
+
+config SLICE_HEADER_PARSING
+	bool
+
+config SUPPORT_HDMI
+	bool
+
+config DRM_INTEL_MID_FAKE
+	bool
+	select FB_CFB_COPYAREA
+	select FB_CFB_FILLRECT
+	select FB_CFB_IMAGEBLIT
+	select DRM_KMS_HELPER
+	select GENERIC_ALLOCATOR
+	select DRM_TTM
+	select SLICE_HEADER_PARSING
+	select DRM_MRFLD
+	select SUPPORT_HDMI
+
+menuconfig DRM_INTEL_MID
+	bool "Intel MID platform graphics support"
+	depends on POWERVR_ROGUE
+	depends on X86_INTEL_MID
+	depends on PCI
+	select DRM_INTEL_MID_FAKE
+
+source "drivers/staging/imgtec/intel/dfrgx/Kconfig"
+
+source "drivers/staging/imgtec/intel/hdmi_audio/Kconfig"

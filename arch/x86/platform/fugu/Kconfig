@@ -1,0 +1,26 @@
+config X86_INTEL_MID_FUGU
+	bool "ASUSTek FUGU platform"
+	depends on X86_INTEL_MID
+	select ASUSTEK_PCBID
+	---help---
+	  ASUSTek fugu platform is powered by Moorefield plaform.
+
+config ASUSTEK_PCBID
+	depends on X86_INTEL_MID_FUGU
+	bool "ASUSTek PCB_ID driver"
+	help
+	  Support to OEM1 SFI table parsing and pre-defined pins configuration
+	  of GPIO reading for PCB_ID layout, and export kernel APIs for
+	  querying board-specific information. (eg, hardware revision)
+
+config FUGU_WIFI_PLATFORM_DATA
+	depends on X86_INTEL_MID_FUGU
+	bool "Enable Fugu WiFi platform data"
+	---help---
+	  Enables platform_fugu_wifi
+
+config FUGU_LED
+	depends on X86_INTEL_MID_FUGU
+	bool "fugu led driver"
+	help
+	  This driver provides the access to control fugu led.

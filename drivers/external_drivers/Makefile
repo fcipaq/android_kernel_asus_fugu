@@ -1,0 +1,1 @@
+obj-$(CONFIG_EXTERNAL_MISC_DRIVERS)	+= drivers/
